@@ -26,12 +26,10 @@ namespace Perceptron
             {
                 error = andPerceptron.TrainWithHillClimbing(andInputs, new double[] { 0, 1, 1, 1 }, error);
                 Console.WriteLine(error);
-                Console.WriteLine(andPerceptron.Compute([0, 0]));
-                Console.WriteLine(andPerceptron.Compute([1, 0]));
-                Console.WriteLine(andPerceptron.Compute([0, 1]));
-                Console.WriteLine(andPerceptron.Compute([1, 1]));
-               // Console.WriteLine(andPerceptron.weights[0]);
-                //Console.WriteLine(andPerceptron.weights[1]);
+                Console.WriteLine(Math.Round(andPerceptron.Compute([0, 0])));
+                Console.WriteLine(Math.Round(andPerceptron.Compute([1, 0])));
+                Console.WriteLine(Math.Round(andPerceptron.Compute([0, 1])));
+                Console.WriteLine(Math.Round(andPerceptron.Compute([1, 1])));
             } while (error > 0.1);
 
         }
