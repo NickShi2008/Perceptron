@@ -13,23 +13,30 @@ namespace Perceptron
             {
                 return Math.Pow(expected - input, 2);
             };  
-            
             double[][] andInputs = {
                 new double[] { 0, 0 },
                 new double[] { 0, 1 },
                 new double[] { 1, 0 },
                 new double[] { 1, 1 },
             };
-            Perceptron andPerceptron = new Perceptron(andInputs[0].Length, 0.1, new Random(), mseFunction);
+            ActivationFunction stepFunction = new ActivationFunction((input) =>
+            {
+                return (input - 0.5) >= 0 ? 1 : 0;
+            }, (input) => { return 0; });
+            ErrorFunction errorFunction = new ErrorFunction(mseFunction, (expected, input) =>
+            {
+                return -2 * (expected - input);
+            });
+            Perceptron andPerceptron = new Perceptron(andInputs[0].Length, 0.1, stepFunction, errorFunction);
             double error = 1;
             do
             {
-                error = andPerceptron.TrainWithHillClimbing(andInputs, new double[] { 0, 1, 1, 1 }, error);
+                error = andPerceptron.Train(andInputs, new double[] { 0, 0, 0, 1 });
                 Console.WriteLine(error);
-                Console.WriteLine(Math.Round(andPerceptron.Compute([0, 0])));
-                Console.WriteLine(Math.Round(andPerceptron.Compute([1, 0])));
-                Console.WriteLine(Math.Round(andPerceptron.Compute([0, 1])));
-                Console.WriteLine(Math.Round(andPerceptron.Compute([1, 1])));
+                Console.WriteLine(andPerceptron.Compute([0, 0]));
+                Console.WriteLine(andPerceptron.Compute([1, 0]));
+                Console.WriteLine(andPerceptron.Compute([0, 1]));
+                Console.WriteLine(andPerceptron.Compute([1, 1]));
             } while (error > 0.1);
 
         }

@@ -4,29 +4,18 @@
     {
         public double[] weights;
         double bias;
-        double mutationAmount;
-        Random random;
-        Func<double, double, double> errorFunc;
+        ErrorFunction errorFunc;
+        ActivationFunction activationFunction;
+        public double LearningRate { get; set; }
 
-        public Perceptron(double[] initialWeightValues, double initialBiasValue,
-        double mutationAmount, Random random, Func<double, double, double> errorFunc)
-        {
-            weights = initialWeightValues;
-            bias = initialBiasValue;
-            this.mutationAmount = mutationAmount;
-            this.random = random;
-            this.errorFunc = errorFunc;
-        }
 
-        public Perceptron(int amountOfInputs, double mutationAmount, Random random,
-        Func<double, double, double> errorFunc)
+        public Perceptron(int amountOfInputs, double learningRate,
+        ActivationFunction activationFunction, ErrorFunction errorFunction)
         {
-            weights = new double[amountOfInputs];
-            Randomize(random, 0, mutationAmount);
-            bias = 0.0;
-            this.mutationAmount = mutationAmount;
-            this.random = random;
-            this.errorFunc = errorFunc;
+            this.weights = new double[amountOfInputs];
+            this.LearningRate = learningRate;
+            this.activationFunction = activationFunction;
+            this.errorFunc = errorFunction;
         }
 
         public void Randomize(Random random, double min, double max)
@@ -46,6 +35,15 @@
                 val += inputs[i] * weights[i];
             }
 
+            return activationFunction.Function(val);
+        }
+        public double ComputeRaw(double[] inputs)
+        {
+            double val = bias;
+            for (int i = 0; i < inputs.Length; i++)
+            {
+                val += inputs[i] * weights[i];
+            }
             return val;
         }
 
@@ -65,40 +63,38 @@
             double[] outputs = Compute(inputs);
             for (int i = 0; i < outputs.Length; i++)
             {
-                totalError += errorFunc(desiredOutputs[i], outputs[i]);
+                totalError += errorFunc.Function(desiredOutputs[i], outputs[i]);
             }
             return totalError / desiredOutputs.Length;
         }
 
-        public double TrainWithHillClimbing(double[][] inputs, double[] desiredOutputs, double currentError)
-        {
-            double initialError = currentError;
-            int randIndex = (int)random.NextDouble() * weights.Length;
-            double randomMutation = (random.NextDouble() * 2 - 1) * mutationAmount;
-            bool biasOrWeight = random.Next(1, 3) % 2 == 0;
-            if (biasOrWeight)
-            {
-                weights[randIndex] += randomMutation;
-            }
-            else
-            {
-                bias += randomMutation;
-            }
+        public double Train(double[] inputs, double desiredOutput)
+        { 
+            double changeInBias = 0.0;
+            double[] changeInWeights = new double[weights.Length];
 
-            double newError = GetError(inputs, desiredOutputs);
+            double biasPartialDerivative = activationFunction.Derivative(ComputeRaw(inputs)) * errorFunc.Derivative(Compute(inputs), desiredOutput);
+            changeInBias = -LearningRate * biasPartialDerivative;
+            for (int i = 0; i < weights.Length; i++)
+            {
+                double weightPartialDerivative = 
+                    biasPartialDerivative * activationFunction.Derivative(bias + ComputeRaw(inputs)) * weights[i];
+                changeInWeights[i] = -LearningRate * weightPartialDerivative;
 
-            if (newError < initialError)
-            {
-                return newError;
+                weights[i] += changeInWeights[i];
             }
-            else
+            bias += changeInBias;
+            return Math.Abs(errorFunc.Function(Compute(inputs), desiredOutput));
+        }
+
+        public double Train(double[][] inputs, double[] desiredOutput)
+        { 
+            double totalError = 0.0;
+            for(int i = 0 ; i < inputs.Length; i++)
             {
-                if (biasOrWeight)
-                    weights[randIndex] -= randomMutation;
-                else
-                    bias -= randomMutation;
+                totalError += Train(inputs[i], desiredOutput[i]);
             }
-            return initialError;
+            return totalError / inputs.Length;
         }
     }
 }
