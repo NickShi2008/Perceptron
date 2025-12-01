@@ -19,15 +19,17 @@ namespace Perceptron
                 new double[] { 1, 0 },
                 new double[] { 1, 1 },
             };
-            ActivationFunction stepFunction = new ActivationFunction((input) =>
-            {
-                return (input - 0.5) >= 0 ? 1 : 0;
-            }, (input) => { return 0; });
-            ErrorFunction errorFunction = new ErrorFunction(mseFunction, (expected, input) =>
-            {
-                return -2 * (expected - input);
+            var sigmoid = new ActivationFunction(
+            x => 1.0 / (1.0 + Math.Exp(-x)),
+            x => {
+                double y = 1.0 / (1.0 + Math.Exp(-x));
+                return y * (1 - y);
             });
-            Perceptron andPerceptron = new Perceptron(andInputs[0].Length, 0.1, stepFunction, errorFunction);
+            ErrorFunction errorFunction = new ErrorFunction(mseFunction, (input, expected) =>
+            {
+                return (input - expected);
+            });
+            Perceptron andPerceptron = new Perceptron(andInputs[0].Length, 0.1, sigmoid, errorFunction);
             double error = 1;
             do
             {

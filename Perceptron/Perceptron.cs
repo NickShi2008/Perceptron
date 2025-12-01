@@ -73,18 +73,19 @@
             double changeInBias = 0.0;
             double[] changeInWeights = new double[weights.Length];
 
-            double biasPartialDerivative = activationFunction.Derivative(ComputeRaw(inputs)) * errorFunc.Derivative(Compute(inputs), desiredOutput);
+            double biasPartialDerivative = activationFunction.Derivative(ComputeRaw(inputs)) 
+                * errorFunc.Derivative(activationFunction.Function(ComputeRaw(inputs)), desiredOutput);
             changeInBias = -LearningRate * biasPartialDerivative;
             for (int i = 0; i < weights.Length; i++)
             {
                 double weightPartialDerivative = 
-                    biasPartialDerivative * activationFunction.Derivative(bias + ComputeRaw(inputs)) * weights[i];
+                    biasPartialDerivative * inputs[i];
                 changeInWeights[i] = -LearningRate * weightPartialDerivative;
 
                 weights[i] += changeInWeights[i];
             }
             bias += changeInBias;
-            return Math.Abs(errorFunc.Function(Compute(inputs), desiredOutput));
+            return Math.Abs(activationFunction.Function(ComputeRaw(inputs)) - desiredOutput);
         }
 
         public double Train(double[][] inputs, double[] desiredOutput)
